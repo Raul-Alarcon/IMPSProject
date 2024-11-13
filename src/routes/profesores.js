@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const queries = require('../repositories/ProfesoresRepository');
-
+const { isLoggedIn } = require('../lib/auth');
 // Función para formatear la fecha
 function formatDate(dateString) {
     const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
@@ -9,7 +9,7 @@ function formatDate(dateString) {
 }
 
 // Listado de todos los profesores
-router.get('/', async (request, response) => {
+router.get('/', isLoggedIn, async (request, response) => {
     try {
         const profesores = await queries.obtenerTodosLosProfesores();
         response.render('profesores/listado', { profesores });
@@ -20,7 +20,7 @@ router.get('/', async (request, response) => {
 });
 
 // Mostrar formulario para agregar un profesor
-router.get('/agregar', (request, response) => {
+router.get('/agregar', isLoggedIn, (request, response) => {
     try{
         response.render('profesores/agregar');
     }catch(error){
@@ -30,25 +30,26 @@ router.get('/agregar', (request, response) => {
 });
 
 // Agregar un nuevo profesor
-router.post('/agregar', async (request, response) => {
+router.post('/agregar', isLoggedIn, async (request, response) => {
     const { nombre, apellido, fecha_nacimiento, profesion, genero, email } = request.body;
     try {
         const resultado = await queries.agregarProfesor(nombre, apellido, fecha_nacimiento, profesion, genero, email);
         if (resultado) {
-            console.log('Profesor agregado con éxito');
+            request.flash('success', 'Profesor agregado con éxito');
             response.redirect('/profesores');
         } else {
-            console.log('Error al agregar profesor');
+            request.flash('error', 'Error al agregar profesor');
             response.status(500).send('Error al agregar profesor');
         }
     } catch (error) {
+        request.flash('error', 'Error al agregar profesor');
         console.error('Error al agregar profesor:', error);
         response.status(500).send('Error al agregar profesor');
     }
 });
 
 /// Mostrar formulario para actualizar un profesor
-router.get('/actualizar/:idprofesor', async (request, response) => {
+router.get('/actualizar/:idprofesor', isLoggedIn, async (request, response) => {
     try {
         const profesor = await queries.obtenerProfesorPorId(request.params.idprofesor);
         
@@ -74,36 +75,38 @@ router.get('/actualizar/:idprofesor', async (request, response) => {
 
 
 // Actualizar un profesor
-router.post('/actualizar/:idprofesor', async (request, response) => {
+router.post('/actualizar/:idprofesor', isLoggedIn, async (request, response) => {
     const { idprofesor } = request.params;
     const { nombre, apellido, fecha_nacimiento, profesion, genero, email } = request.body;
     try {
         const resultado = await queries.actualizarProfesor(idprofesor, nombre, apellido, fecha_nacimiento, profesion, genero, email);
         if (resultado) {
-            console.log('Profesor actualizado con éxito');
+            request.flash('success', 'Profesor actualizado con éxito');
             response.redirect('/profesores');
         } else {
-            console.log('Error al actualizar profesor');
+            request.flash('error', 'Error al actualizar profesor');
             response.status(500).send('Error al actualizar profesor');
         }
     } catch (error) {
+        request.flash('error', 'Error al actualizar profesor');
         console.error('Error al actualizar profesor:', error);
         response.status(500).send('Error al actualizar profesor');
     }
 });
 
 // Eliminar un profesor
-router.get('/eliminar/:idprofesor', async (request, response) => {
+router.get('/eliminar/:idprofesor', isLoggedIn, async (request, response) => {
     const { idprofesor } = request.params;
     try {
         const resultado = await queries.eliminarProfesor(idprofesor);
         if (resultado) {
-            console.log('Profesor eliminado con éxito');
+            request.flash('success', 'Profesor eliminado con éxito');
         } else {
-            console.log('No se pudo eliminar el profesor');
+            request.flash('error', 'Error al eliminar profesor');
         }
         response.redirect('/profesores');
     } catch (error) {
+        request.flash('error', 'Error al eliminar profesor');
         console.error('Error al eliminar profesor:', error);
         response.status(500).send('Error al eliminar profesor');
     }

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const queries = require('../repositories/MateriasRepository');
+const { isLoggedIn } = require('../lib/auth');
 
 // Endpoint para mostrar todas las materias
-router.get('/', async (request, response) => {
+router.get('/', isLoggedIn, async (request, response) => {
     try {
         const materias = await queries.obtenerTodasLasMaterias();
         response.render('materias/listado', { materias });
@@ -14,7 +15,7 @@ router.get('/', async (request, response) => {
 });
 
 // Endpoint que permite mostrar el formulario para agregar una nueva materia
-router.get('/agregar', (request, response) => {
+router.get('/agregar', isLoggedIn, (request, response) => {
     try {
     response.render('materias/agregar');
     } catch (error) {
@@ -24,25 +25,26 @@ router.get('/agregar', (request, response) => {
 });
 
 // Endpoint para agregar una materia
-router.post('/agregar', async (request, response) => {
+router.post('/agregar', isLoggedIn, async (request, response) => {
     const { idmateria, materia } = request.body;
     try {
         const resultado = await queries.agregarMateria(idmateria, materia);
         if (resultado) {
-            console.log('Materia agregada con éxito');
+            request.flash('success', 'Materia agregada con éxito');
             response.redirect('/materias');
         } else {
-            console.log('Error al agregar materia');
+            request.flash('error', 'Error al agregar materia');
             response.status(500).send('Error al agregar materia');
         }
     } catch (error) {
+        request.flash('error', 'Error al agregar materia');
         console.error('Error al agregar materia:', error);
         response.status(500).send('Error al agregar materia');
     }
 });
 
 // Endpoint para mostrar el formulario de actualización de una materia
-router.get('/actualizar/:idmateria', async (request, response) => {
+router.get('/actualizar/:idmateria', isLoggedIn, async (request, response) => {
     const { idmateria } = request.params;
     try {
         const materia = await queries.obtenerMateriaPorId(idmateria);
@@ -58,36 +60,38 @@ router.get('/actualizar/:idmateria', async (request, response) => {
 });
 
 // Endpoint para actualizar una materia
-router.post('/actualizar/:idmateria', async (request, response) => {
+router.post('/actualizar/:idmateria', isLoggedIn, async (request, response) => {
     const { idmateria } = request.params;
     const { materia } = request.body;
     try {
         const resultado = await queries.actualizarMateria(idmateria, materia);
         if (resultado) {
-            console.log('Materia actualizada con éxito');
+            request.flash('success', 'Materia actualizada con éxito');
             response.redirect('/materias');
         } else {
-            console.log('Error al actualizar materia');
+            request.flash('error', 'Error al actualizar materia');
             response.status(500).send('Error al actualizar materia');
         }
     } catch (error) {
+        request.flash('error', 'Error al actualizar materia');
         console.error('Error al actualizar materia:', error);
         response.status(500).send('Error al actualizar materia');
     }
 });
 
 // Endpoint que permite eliminar una materia
-router.get('/eliminar/:idmateria', async (request, response) => {
+router.get('/eliminar/:idmateria', isLoggedIn, async (request, response) => {
     const { idmateria } = request.params;
     try {
         const resultado = await queries.eliminarMateria(idmateria);
         if (resultado) {
-            console.log('Materia eliminada con éxito');
+            request.flash('success', 'Materia eliminada con éxito');
             response.redirect('/materias');
         } else {
-            console.log('No se pudo eliminar la materia');
+            request.flash('error', 'Error al eliminar materia');
         }
     } catch (error) {
+        request.flash('error', 'Error al eliminar materia');
         console.error('Error al eliminar materia:', error);
         response.status(500).send('Error al eliminar materia');
     }

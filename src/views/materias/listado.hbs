@@ -1,4 +1,14 @@
 <div class="container p-4">
+    {{#if flash.info}}
+    <div class="alert alert-success">
+        {{flash.info}}
+    </div>
+    {{/if}}
+    {{#if flash.error}}
+    <div class="alert alert-danger">
+        {{flash.error}}
+    </div>
+    {{/if}}  
     <div class="col-sm-12">
         <div class="row">
             <div class="col-sm-6">
